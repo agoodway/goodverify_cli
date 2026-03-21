@@ -4,7 +4,7 @@ set -e
 
 VERSION="${GOODVERIFY_VERSION:-latest}"
 INSTALL_DIR="${GOODVERIFY_INSTALL_DIR:-/usr/local/bin}"
-BASE_URL="${GOODVERIFY_BASE_URL:-https://github.com/goodwaygroup/goodverify/releases/download}"
+BASE_URL="${GOODVERIFY_BASE_URL:-https://github.com/agoodway/goodverify_cli/releases/download}"
 
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
 ARCH="$(uname -m)"
