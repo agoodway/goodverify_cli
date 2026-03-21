@@ -3,7 +3,7 @@
 set -e
 
 VERSION="${GOODVERIFY_VERSION:-latest}"
-INSTALL_DIR="${GOODVERIFY_INSTALL_DIR:-/usr/local/bin}"
+INSTALL_DIR="${GOODVERIFY_INSTALL_DIR:-$HOME/.local/bin}"
 REPO_URL="${GOODVERIFY_REPO_URL:-https://github.com/agoodway/goodverify_cli}"
 
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
@@ -47,12 +47,14 @@ fi
 
 chmod +x "${TMPDIR}/goodverify"
 
-if [ -w "$INSTALL_DIR" ]; then
-    mv "${TMPDIR}/goodverify" "${INSTALL_DIR}/goodverify"
-else
-    echo "Installing to ${INSTALL_DIR} (requires sudo)..."
-    sudo mv "${TMPDIR}/goodverify" "${INSTALL_DIR}/goodverify"
-fi
+mkdir -p "$INSTALL_DIR"
+mv "${TMPDIR}/goodverify" "${INSTALL_DIR}/goodverify"
 
 echo "goodverify installed to ${INSTALL_DIR}/goodverify"
-goodverify --version
+
+case ":$PATH:" in
+    *":${INSTALL_DIR}:"*) ;;
+    *) echo "NOTE: Add ${INSTALL_DIR} to your PATH:"; echo "  export PATH=\"${INSTALL_DIR}:\$PATH\"" ;;
+esac
+
+"${INSTALL_DIR}/goodverify" --version
