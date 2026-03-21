@@ -4,7 +4,7 @@ set -e
 
 VERSION="${GOODVERIFY_VERSION:-latest}"
 INSTALL_DIR="${GOODVERIFY_INSTALL_DIR:-/usr/local/bin}"
-BASE_URL="${GOODVERIFY_BASE_URL:-https://github.com/agoodway/goodverify_cli/releases/download}"
+REPO_URL="${GOODVERIFY_REPO_URL:-https://github.com/agoodway/goodverify_cli}"
 
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
 ARCH="$(uname -m)"
@@ -27,9 +27,9 @@ esac
 BINARY="goodverify-${OS}-${ARCH}"
 
 if [ "$VERSION" = "latest" ]; then
-    URL="${BASE_URL}/latest/download/${BINARY}"
+    URL="${REPO_URL}/releases/latest/download/${BINARY}"
 else
-    URL="${BASE_URL}/v${VERSION}/${BINARY}"
+    URL="${REPO_URL}/releases/download/v${VERSION}/${BINARY}"
 fi
 
 echo "Downloading goodverify for ${OS}/${ARCH}..."

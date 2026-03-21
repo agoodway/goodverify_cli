@@ -1,6 +1,6 @@
 # goodverify build recipes
 
-version := "0.1.0"
+version := `grep '\.version' build.zig.zon | head -1 | sed 's/.*"\(.*\)".*/\1/'`
 dist := "dist"
 
 # Build debug binary
@@ -10,6 +10,28 @@ build:
 # Build release binary (native platform)
 release:
     zig build -Doptimize=ReleaseSafe
+
+# Bump version in build.zig.zon (major, minor, or patch)
+bump part="patch":
+    #!/usr/bin/env sh
+    IFS='.' read -r major minor patch <<< "{{version}}"
+    case "{{part}}" in
+        major) major=$((major + 1)); minor=0; patch=0 ;;
+        minor) minor=$((minor + 1)); patch=0 ;;
+        patch) patch=$((patch + 1)) ;;
+        *) echo "Error: use 'major', 'minor', or 'patch'" >&2; exit 1 ;;
+    esac
+    new="${major}.${minor}.${patch}"
+    sed -i '' "s/\.version = \"{{version}}\"/\.version = \"${new}\"/" build.zig.zon
+    echo "{{version}} → ${new}"
+
+repo := "agoodway/goodverify_cli"
+
+# Push subtree to remote, tag, and publish a GitHub release
+publish: test dist checksums
+    cd .. && git subtree push --prefix=cli-zig git@github.com:{{repo}}.git main
+    gh api repos/{{repo}}/git/refs -f ref="refs/tags/v{{version}}" -f sha="$(gh api repos/{{repo}}/commits/main --jq '.sha')"
+    gh release create "v{{version}}" {{dist}}/* --repo {{repo}} --title "v{{version}}" --generate-notes
 
 # Run with arguments
 run *ARGS:

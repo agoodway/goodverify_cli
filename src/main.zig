@@ -1,4 +1,5 @@
 const std = @import("std");
+const config = @import("config");
 const help = @import("help.zig");
 const configure = @import("commands/configure.zig");
 const verify = @import("commands/verify.zig");
@@ -30,7 +31,7 @@ pub fn main() !void {
         return;
     }
     if (std.mem.eql(u8, cmd, "--version") or std.mem.eql(u8, cmd, "-v")) {
-        try File.stdout().writeAll("goodverify 0.1.0\n");
+        try File.stdout().writeAll("goodverify " ++ config.version ++ "\n");
         return;
     }
 

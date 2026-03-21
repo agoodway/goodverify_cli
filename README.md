@@ -149,3 +149,24 @@ zig build run -- --help   # Build and run
 just release           # Optimized native binary
 just dist              # Cross-compile for all 6 platforms
 ```
+
+## Releasing
+
+Version is defined in `build.zig.zon` and derived everywhere else automatically.
+
+```sh
+# Bump version (defaults to patch)
+just bump              # 0.1.0 → 0.1.1
+just bump minor        # 0.1.0 → 0.2.0
+just bump major        # 0.1.0 → 1.0.0
+
+# Publish a release (runs tests, builds all platforms, tags, pushes, creates GitHub release)
+just publish
+```
+
+`just publish` will:
+1. Run `zig build test`
+2. Cross-compile binaries for macOS, Linux, and Windows (amd64 + arm64)
+3. Generate SHA-256 checksums
+4. Create and push a git tag (`v0.1.0`)
+5. Create a GitHub release with all binaries attached
