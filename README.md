@@ -9,13 +9,13 @@ Built in Zig with zero external dependencies. Single static binary (~1MB).
 **macOS / Linux:**
 
 ```sh
-curl -fsSL https://github.com/goodwaygroup/goodverify/releases/download/latest/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/goodwaygroup/goodverify/main/cli-zig/install.sh | sh
 ```
 
 **Windows (PowerShell):**
 
 ```powershell
-irm https://github.com/goodwaygroup/goodverify/releases/download/latest/install.ps1 | iex
+irm https://raw.githubusercontent.com/goodwaygroup/goodverify/main/cli-zig/install.ps1 | iex
 ```
 
 **From source:**
