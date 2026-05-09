@@ -273,6 +273,29 @@ pub const Client = struct {
         return self.request(.POST, "/api/v1/batch", body);
     }
 
+    /// POST /api/v1/batch with multipart CSV upload
+    pub fn createBatchCsv(self: *const Client, filename: []const u8, file_content: []const u8) !RawResponse {
+        const boundary = "goodverify-cli-boundary";
+        const content_type = try std.fmt.allocPrint(self.allocator, "multipart/form-data; boundary={s}", .{boundary});
+        defer self.allocator.free(content_type);
+
+        var body: std.ArrayList(u8) = .{};
+        defer body.deinit(self.allocator);
+
+        try body.appendSlice(self.allocator, "--" ++ boundary ++ "\r\n");
+        try body.appendSlice(self.allocator, "Content-Disposition: form-data; name=\"file\"; filename=\"");
+        try body.appendSlice(self.allocator, filename);
+        try body.appendSlice(self.allocator, "\"\r\n");
+        try body.appendSlice(self.allocator, "Content-Type: text/csv\r\n\r\n");
+        try body.appendSlice(self.allocator, file_content);
+        try body.appendSlice(self.allocator, "\r\n--" ++ boundary ++ "--\r\n");
+
+        const payload = try body.toOwnedSlice(self.allocator);
+        defer self.allocator.free(payload);
+
+        return self.requestWithContentType(.POST, "/api/v1/batch", payload, content_type);
+    }
+
     /// GET /api/v1/batch/{id}
     pub fn getBatch(self: *const Client, id: []const u8) !RawResponse {
         const path = try std.fmt.allocPrint(self.allocator, "/api/v1/batch/{s}", .{id});
@@ -303,6 +326,16 @@ pub const Client = struct {
     }
 
     fn request(self: *const Client, method: std.http.Method, path: []const u8, body: ?[]const u8) !RawResponse {
+        return self.requestWithContentType(method, path, body, "application/json");
+    }
+
+    fn requestWithContentType(
+        self: *const Client,
+        method: std.http.Method,
+        path: []const u8,
+        body: ?[]const u8,
+        content_type: []const u8,
+    ) !RawResponse {
         const url = try std.fmt.allocPrint(self.allocator, "{s}{s}", .{ self.base_url, path });
         defer self.allocator.free(url);
 
@@ -322,7 +355,7 @@ pub const Client = struct {
             .response_writer = &aw.writer,
             .extra_headers = &.{
                 .{ .name = "Authorization", .value = auth_header },
-                .{ .name = "Content-Type", .value = "application/json" },
+                .{ .name = "Content-Type", .value = content_type },
             },
             .headers = .{ .accept_encoding = .omit },
         });

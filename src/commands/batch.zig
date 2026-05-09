@@ -10,12 +10,14 @@ const default_base_url = "https://goodverify.dev";
 
 pub fn run(allocator: std.mem.Allocator, args: []const []const u8) !void {
     const subcmd = main_mod.getPositional(args) orelse {
-        try File.stderr().writeAll("Error: specify a subcommand: list, get, results, or sample\n\n");
+        try File.stderr().writeAll("Error: specify a subcommand: create, list, get, results, or sample\n\n");
         try File.stderr().writeAll(@import("../help.zig").batch_help);
         std.process.exit(1);
     };
 
-    if (std.mem.eql(u8, subcmd, "list")) {
+    if (std.mem.eql(u8, subcmd, "create")) {
+        try createBatch(allocator, args);
+    } else if (std.mem.eql(u8, subcmd, "list")) {
         try listBatches(allocator, args);
     } else if (std.mem.eql(u8, subcmd, "get")) {
         try getBatch(allocator, args);
@@ -48,6 +50,54 @@ fn getClient(allocator: std.mem.Allocator, args: []const []const u8) !gen.Client
     };
 
     return gen.Client.init(allocator, base_url, api_key);
+}
+
+fn createBatch(allocator: std.mem.Allocator, args: []const []const u8) !void {
+    const client = try getClient(allocator, args);
+
+    const resp = if (main_mod.getFlag(args, "--csv")) |path| blk: {
+        const body = try readRequestFile(allocator, path);
+        defer allocator.free(body);
+        break :blk try client.createBatchCsv(std.fs.path.basename(path), body);
+    } else blk: {
+        const body = try batchRequestBody(allocator, args);
+        defer allocator.free(body);
+        break :blk try client.createBatch(body);
+    };
+
+    try handleResponse(allocator, resp, args);
+}
+
+fn batchRequestBody(allocator: std.mem.Allocator, args: []const []const u8) ![]const u8 {
+    if (main_mod.getFlag(args, "--json-body")) |body| {
+        return allocator.dupe(u8, body);
+    }
+
+    if (main_mod.getFlag(args, "--file")) |path| {
+        return readRequestFile(allocator, path);
+    }
+
+    try File.stderr().writeAll("Error: --json-body, --file, or --csv is required for batch create\n");
+    std.process.exit(1);
+}
+
+fn readRequestFile(allocator: std.mem.Allocator, path: []const u8) ![]const u8 {
+    const file = std.fs.cwd().openFile(path, .{}) catch |err| {
+        try main_mod.writeErr(allocator, "Error: failed to open batch request file '{s}': {s}\n", .{
+            path,
+            @errorName(err),
+        });
+        std.process.exit(1);
+    };
+    defer file.close();
+
+    return file.readToEndAlloc(allocator, 10 * 1024 * 1024) catch |err| {
+        try main_mod.writeErr(allocator, "Error: failed to read batch request file '{s}': {s}\n", .{
+            path,
+            @errorName(err),
+        });
+        std.process.exit(1);
+    };
 }
 
 fn listBatches(allocator: std.mem.Allocator, args: []const []const u8) !void {

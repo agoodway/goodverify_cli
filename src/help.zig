@@ -83,18 +83,25 @@ pub const batch_help =
     \\goodverify batch — Manage batch verification jobs.
     \\
     \\Usage:
+    \\  goodverify batch create --json-body '<json>'
+    \\  goodverify batch create --file <request.json>
+    \\  goodverify batch create --csv <data.csv>
     \\  goodverify batch list
     \\  goodverify batch get --id <batch_id>
     \\  goodverify batch results --id <batch_id>
     \\  goodverify batch sample
     \\
     \\Subcommands:
+    \\  create       Create a batch verification job from JSON or CSV
     \\  list         List all batch jobs
     \\  get          Get details of a specific batch job
     \\  results      Download results of a completed batch job
     \\  sample       Download sample CSV template
     \\
     \\Options:
+    \\  --json-body <json>   JSON body for POST /api/v1/batch
+    \\  --file <path>        Read JSON body from a file
+    \\  --csv <path>         Upload a CSV file as multipart/form-data
     \\  --id <batch_id>      Batch job ID (required for get and results)
     \\  --env <name>         Use a specific configured environment
     \\  --key <key>          Override API key
@@ -102,6 +109,9 @@ pub const batch_help =
     \\  --json               Output raw JSON response
     \\
     \\Behavior:
+    \\  - 'create' submits a JSON or CSV batch request and returns the accepted job
+    \\  - JSON body must contain a 'verifications' array
+    \\  - CSV uploads use the same format returned by 'batch sample'
     \\  - 'list' shows a table of all batch jobs with status, row counts, and type
     \\  - 'get' returns full details of a batch job as JSON
     \\  - 'results' returns verification results for each row in the batch
@@ -112,6 +122,9 @@ pub const batch_help =
     \\  1    Missing required flags, no API key, or HTTP error
     \\
     \\Examples:
+    \\  goodverify batch create --file batch.json
+    \\  goodverify batch create --csv contacts.csv
+    \\  goodverify batch create --json-body '{"verifications":[{"type":"email","email":"user@example.com"}]}'
     \\  goodverify batch list
     \\  goodverify batch list --json
     \\  goodverify batch get --id abc123
